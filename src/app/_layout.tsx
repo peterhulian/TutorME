@@ -4,7 +4,9 @@ import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import AppTabs from '@/components/app-tabs';
-
+import './vector-icons.web.js'; // Must be at the very top
+import React from 'react';
+// ... rest of your imports
 SplashScreen.preventAutoHideAsync();
 
 export default function TabLayout() {

@@ -1,0 +1,439 @@
+================================================================================
+                    TUTORME CEA — APP GUIDE & FUNCTION REFERENCE
+================================================================================
+
+App: TutorMe | Platform: Expo React Native (SDK 57) | Backend: Supabase
+Primary Color: #7C3AED (Purple) | Currency: Philippine Peso (₱)
+
+================================================================================
+                              🔐 ADMIN CREDENTIALS
+================================================================================
+
+Role:     Admin
+Email:    Admin@test.com
+Password: 123456
+
+NOTE: The app auto-appends @tutorme.local when signing in without an @ in the
+input. For the admin account, enter Admin@test.com exactly as shown (includes @).
+
+================================================================================
+                           📱 NAVIGATION STRUCTURE
+================================================================================
+
+Bottom Tab Navigator
+├── Home Screen         → HomeScreen
+├── Tutors Tab         → TutorsStack
+│   ├── Tutors List    → TutorsScreen
+│   ├── Tutor Detail   → TutorDetailScreen
+│   └── Booking        → BookingScreen
+├── Bookings Tab       → BookingsScreen
+└── Profile Tab        → ProfileScreen
+    └── Admin Dashboard → AdminDashboardScreen (for admins only)
+
+================================================================================
+                           🏠 HOME SCREEN (HomeScreen.js)
+================================================================================
+
+Entry point of the app. Displays overview and quick-access sections.
+
+FUNCTIONS:
+  • loadData()          - Fetches top 6 tutors + crash courses on mount
+  • openTutorDetail()   - Navigates to tutor detail screen
+
+UI SECTIONS:
+  • Hero Banner         - App tagline & "Browse Tutors" button
+  • Popular Subjects    - 5 subject filter pills:
+    - Mathematics / Calculus
+    - Solid Mensuration
+    - Physics
+    - Chemistry
+    - Engineering / Architecture
+  • Crash Courses       - Group sessions with "Reserve Spot" button
+  • Featured Tutors     - Top 3 tutors by rating
+  • How TutorMe Works   - 3-step explainer (Browse → Book → Learn)
+  • Become a Tutor CTA  - Button to Profile tab
+
+================================================================================
+                        👥 TUTORS SCREEN (TutorsScreen.js)
+================================================================================
+
+Browse and filter the full directory of verified CEA peer tutors.
+
+FUNCTIONS:
+  • loadTutors()        - Fetches all tutors from Supabase, sorted by rating
+  • applyFilters()      - Filters tutors by search, subject, and rate
+
+FILTER OPTIONS:
+  Search Bar:    Free-text on tutor name and subjects
+  Subject Pills: All • Math/Calculus • Solid Mensuration • Chemistry • Physics
+                 • Engineering/Architecture
+  Rate Pills:    All • Under ₱75 • ₱76–₱100 • Over ₱100
+
+TUTOR CARD INFO:
+  • Avatar with initials, name, badge
+  • Star rating + review count
+  • Subject tags
+  • Available days
+  • Hourly rate
+  • "View Profile & Book" button
+
+================================================================================
+                    👤 TUTOR DETAIL SCREEN (TutorDetailScreen.js)
+================================================================================
+
+Full profile page for a single tutor.
+
+FUNCTIONS:
+  • loadTutor()         - Fetches single tutor record by ID
+
+SECTIONS DISPLAYED:
+  • Header Card         - Avatar, name, badge, rating, review count
+  • About               - Program, hourly rate, available days
+  • Specialties         - Subject badges
+  • Session Pricing     - Prices for 1hr, 1.5hr, 2hr + 5% platform fee note
+  • Session Modes       - In-Person on Campus / Virtual via Google Meet
+
+CTA BUTTON:
+  "Book a Session with [Name]" → navigates to BookingScreen
+
+================================================================================
+                      📝 BOOKING SCREEN (BookingScreen.js)
+================================================================================
+
+Form to create a tutoring session booking.
+
+FUNCTIONS:
+  • calculatePricing()  - subtotal = rate × duration
+                         platformFee = subtotal × 0.05
+                         total = subtotal + fee
+  • handleBooking()     - Validates, creates booking, navigates to Bookings tab
+
+BOOKING FORM FIELDS:
+  Topic:           Free-text input (required)
+  Location:        CEA Library Study Pod
+                   CEA Engineering Lobby
+                   Architecture Drafting Hall 3rd Floor
+                   Google Meet Virtual
+  Time Slot:       8:00 AM • 10:00 AM • 1:00 PM • 3:00 PM
+  Duration:        1 hr • 1.5 hrs • 2 hrs
+  Payment Method:  Cash (instant)
+                   GCash (simulated 2s processing)
+                   Card (simulated 2s processing)
+
+PRICING DISPLAY:
+  • Subtotal (rate × duration)
+  • Platform Fee (5%)
+  • Total Amount
+
+SAVED TO SUPABASE:
+  bookings table: student_id, tutor_id, topic, location, time, duration,
+                  payment_method, total_amount, status ('pending')
+
+================================================================================
+                    📅 BOOKINGS SCREEN (BookingsScreen.js)
+================================================================================
+
+Manages all tutoring session requests and bookings.
+
+FUNCTIONS:
+  • loadBookings()           - Loads student + tutor bookings
+  • handleUpdateStatus()     - Updates booking status with confirmation
+  • getStatusStyle()         - Returns badge styling per status
+  • getInitials()            - Generates 2-letter initials from name
+  • onRefresh()              - Pull-to-refresh handler
+
+TAB VIEWS (TUTORS ONLY):
+  Incoming Requests     → Accept (confirmed) / Decline (rejected)
+  My Study Bookings     → Cancel pending bookings
+
+BOOKING STATUS VALUES:
+  pending               → Yellow (Awaiting tutor acceptance)
+  confirmed/approved    → Green (Tutor accepted)
+  cancelled/rejected    → Red (Cancelled/Declined)
+
+BOOKING CARD INFO:
+  • Avatar with initials, name, role label
+  • Topic, location, schedule (time + duration)
+  • Payment method + total amount
+  • Status badge with icon
+  • Context-dependent action buttons
+
+================================================================================
+                     👤 PROFILE SCREEN (ProfileScreen.js)
+================================================================================
+
+Authentication hub and user dashboard. Behavior changes based on role.
+
+FUNCTIONS:
+  • checkUser()                 - Gets current Supabase session
+  • loadUserProfile()           - Fetches profiles & tutor_applications
+  • checkExistingApplication()  - Queries existing application status
+  • handleAuth()                - Sign in/up; auto-appends @tutorme.local
+  • handleApplyTutor()          - Submits tutor application
+  • handleSignOut()             - Signs out from Supabase
+  • toggleSubject()             - Adds/removes subject from application
+  • getInitials()               - Generates 2-letter initials
+
+AUTH FLOW:
+  1. User enters username (e.g. Juan) or full email
+  2. App auto-appends @tutorme.local if no @ → Juan@tutorme.local
+  3. First attempt → Sign In; if not found → auto Sign Up
+  4. Session persisted via AsyncStorage
+
+ROLE-BASED DASHBOARD VIEWS:
+
+  ADMIN DASHBOARD:
+    • "Review Applications" → navigates to AdminDashboard screen
+    • "View Tutor Directory" → navigates to Tutors tab
+    • Profile header shows "Administrator" badge
+
+  TUTOR DASHBOARD:
+    • Profile card with "Active Tutor" status badge
+    • "View My Sessions" → navigates to Bookings tab
+    • "View Tutor Directory" → navigates to Tutors tab
+
+  TUTEE (STUDENT) DASHBOARD:
+    • Application status display
+    • "Apply to Become a Tutor" → opens application modal
+    • "View My Bookings" → navigates to Bookings tab
+    • "Browse Tutors" → navigates to Tutors tab
+
+TUTOR APPLICATION MODAL FIELDS:
+  Full Name:        Free-text
+  CEA Program:      BS Civil Eng. (3rd/4th Yr)
+                    BS Electronics Eng. (3rd/4th Yr)
+                    BS Architecture (3rd/4th Yr)
+                    BS Computer Eng.
+                    BS Mechanical Eng.
+  Subjects:         Math/Calculus • Solid Mensuration • Chemistry
+                    • Physics • Engineering/Architecture
+  Hourly Rate:      ₱60 • ₱75 • ₱85 • ₱100
+  Available Days:   Free-text (e.g. "Friday, Saturday, Sunday")
+
+================================================================================
+                 🛡️ ADMIN DASHBOARD SCREEN (AdminDashboardScreen.js)
+================================================================================
+
+Admin-only screen to review and act on pending tutor applications.
+
+FUNCTIONS:
+  • loadApplications()  - Fetches all pending applications
+  • handleAction()      - Updates application status (approved/rejected)
+
+APPLICATION CARD INFO:
+  • Applicant avatar with initials
+  • Full name, program
+  • Requested rate, subjects list, available days
+  • "Approve" button (green) → sets status to approved
+  • "Reject" button (red) → sets status to rejected
+
+EMPTY STATE:
+  Shows "All Caught Up! ✅" when no pending applications exist.
+
+PULL-TO-REFRESH:
+  Swipe down to reload the applications list.
+
+================================================================================
+                   📋 MY BOOKINGS SCREEN (MyBookingsScreen.js)
+================================================================================
+
+Alternative bookings view (student-only, focused on their own sessions).
+
+FUNCTIONS:
+  • loadBookings()           - Fetches user's bookings with tutor info
+  • handleCancelBooking()    - Cancels pending bookings
+  • getStatusColor()         - Returns color for status types
+
+BOOKING CARD ACTIONS:
+  • "View Details" → Alert showing tutor, topic, location, time, status
+  • "Cancel" → Available only on pending bookings
+
+================================================================================
+                 📋 BECOME A TUTOR SCREEN (BecomeTutorScreen.js)
+================================================================================
+
+Standalone tutor application form (alternate entry point to in-profile modal).
+
+FUNCTIONS:
+  • handleSubmit()  - Validates fields, generates initials, inserts application
+
+FORM FIELDS:
+  Full Name:        Free-text
+  CEA Program:      Horizontal scrollable pill selector (8 options)
+  Hourly Rate:      ₱60 • ₱75 • ₱85 • ₱100
+  Subjects:         Comma-separated (e.g. "Calculus, Physics")
+  Available Days:   Free-text (e.g. "Friday, Saturday, Sunday")
+
+VERIFICATION INFO:
+  Applications are reviewed within 48 hours. Transcripts and teaching
+  credentials are verified before the tutor appears in the directory.
+
+================================================================================
+                        🗄️ DATABASE TABLES (Supabase)
+================================================================================
+
+TABLE: profiles
+  Purpose: User accounts and roles
+  Columns: id, full_name, role (tutee/tutor/admin), email
+
+TABLE: tutors
+  Purpose: Approved tutor directory listings
+  Columns: id, user_id, name, initials, badge, program, subjects[], rate,
+           rating, reviews, days_display
+
+TABLE: bookings
+  Purpose: Session booking records
+  Columns: id, student_id, tutor_id, topic, location, time, duration,
+           payment_method, total_amount, status
+
+TABLE: tutor_applications
+  Purpose: Pending/reviewed tutor sign-up requests
+  Columns: id, user_id, full_name, program, subjects[], requested_rate,
+           available_days, initials, status
+
+TABLE: crash_courses
+  Purpose: Group crash course listings
+  Columns: id, title, subject, date, time, location, spots_left, price
+
+================================================================================
+                              👥 USER ROLES
+================================================================================
+
+TUTEE (Default for new sign-ups):
+  • Browse tutors
+  • Book sessions
+  • Cancel pending bookings
+  • Apply to become tutor
+
+TUTOR (Granted after application approval):
+  • All tutee features
+  • View incoming booking requests
+  • Accept/decline sessions
+
+ADMIN (Pre-configured):
+  • All platform features
+  • Review/approve/reject tutor applications
+
+================================================================================
+                            🔄 KEY WORKFLOWS
+================================================================================
+
+BOOKING A TUTORING SESSION:
+  1. Browse tutors on Tutors tab (filter by subject or rate)
+  2. Tap "View Profile & Book" on a tutor card
+  3. Review tutor profile and tap "Book a Session"
+  4. Fill in topic, location, time, duration, payment method
+  5. Review price breakdown (5% platform fee added)
+  6. Tap "Confirm Booking" → booking created with pending status
+  7. Tutor sees request in "Incoming Requests" tab
+  8. Tutor taps "Accept" → status becomes confirmed
+
+BECOMING A PEER TUTOR:
+  1. Sign in on Profile tab
+  2. Tap "Apply to Become a Tutor"
+  3. Fill in application form (program, subjects, rate, available days)
+  4. Submit → application saved with pending status
+  5. Admin logs in and reviews on Admin Dashboard
+  6. Admin taps "Approve" → application status becomes approved
+  7. User's dashboard updates to show Tutor view
+
+ADMIN REVIEWING APPLICATIONS:
+  1. Log in with Admin@test.com / 123456
+  2. Navigate to Profile tab → tap "Review Applications"
+  3. Review each applicant card
+  4. Tap "Approve" or "Reject" and confirm the prompt
+  5. Application status updates in Supabase
+
+================================================================================
+                             🎨 DESIGN SYSTEM
+================================================================================
+
+Primary Purple:      #7C3AED  → Buttons, active states, badges, accents
+Light Purple:        #F3E8FF  → Avatar backgrounds, badge fills
+Border Purple:       #DDD5FE  → Avatar borders, card borders
+Success Green:       #10B981  → Confirmed status, Accept button
+Warning Amber:       #D97706  → Pending status
+Danger Red:          #DC2626  → Rejected/cancelled, Decline button
+Background:          #F9FAFB  → Screen backgrounds
+Card White:          #FFFFFF  → Card surfaces
+Text Primary:        #111111  → Headings and key values
+Text Secondary:      #666666  → Labels and subtitles
+
+================================================================================
+                               ⚙️ TECH STACK
+================================================================================
+
+Framework:           Expo SDK 57 / React Native 0.86.3 / React 19.2.3
+Navigation:          React Navigation 6 (Bottom Tabs + Native Stack)
+Backend / DB:        Supabase (PostgreSQL + Auth + RLS)
+Session Storage:     @react-native-async-storage 2.2.0
+Icons:               @expo/vector-icons (Ionicons)
+Build / Deploy:      EAS Build (Project ID: 602927cb-daf4-46fc-985a-bc93c7fbfa15)
+Supabase Project:    ikbumqwuntyuqygubixn.supabase.co
+
+================================================================================
+                          🧪 TEST / DEMO ACCOUNTS
+================================================================================
+
+Admin Account:
+  Email:    Admin@test.com
+  Password: 123456
+  Notes:    Full access; can approve/reject tutor applications
+
+Student Account:
+  Email:    Create via sign-up
+  Password: Any
+  Notes:    Auto-created as tutee role
+
+Tutor Account:
+  Email:    Apply via Profile tab
+  Password: —
+  Notes:    Must be approved by admin first
+
+QUICK SIGN-UP:
+  On the Profile screen, enter any username (no @ needed) and a password.
+  The app automatically creates the account on first sign-in attempt if the
+  user doesn't exist.
+
+================================================================================
+                     ⚠️ KNOWN ISSUES & ARCHITECTURAL NOTES
+================================================================================
+
+CRITICAL GAPS:
+
+1. TUTOR APPROVAL DOES NOT AUTO-CREATE DIRECTORY ENTRY
+   • When admin approves a tutor application, tutor_applications.status
+     is updated to "approved"
+   • However, NO entry is automatically created in the tutors table
+   • Result: Approved tutors won't appear in the Tutors directory until
+     manually added to the tutors table
+   • Workaround: Admin must manually insert approved applicants into the
+     tutors table or implement an automated trigger/function
+
+2. DUAL BOOKING SCREENS
+   • Two separate screens exist: BookingsScreen.js (advanced, dual tutor/student
+     view) and MyBookingsScreen.js (simpler, student-only)
+   • App.js uses only BookingsScreen; MyBookingsScreen is redundant
+   • Consider consolidating to avoid maintenance issues
+
+3. DEPRECATED BCOMEATUTORSCREEN
+   • Original tutor application screen still exists in src/screens/
+   • Functionality now resides in ProfileScreen as a modal
+   • Screen is unreachable via navigation but should be removed or clarified
+
+NAVIGATION ARCHITECTURE NOTE:
+  • Expo Router files in src/app/ are template defaults and NOT used
+  • Actual navigation is implemented in App.js using React Navigation
+    (Bottom Tabs + Native Stacks)
+  • Expo Router files (index.tsx, explore.tsx) serve as unused templates
+
+AUTHENTICATION NOTES:
+  • When a user signs in without an @ symbol, the system auto-appends
+    @tutorme.local
+  • Example: Username "Juan" becomes "Juan@tutorme.local"
+  • The admin account is pre-configured as Admin@test.com (already includes @,
+    so no appending occurs)
+
+================================================================================
+Generated: 2026-10-18 | TutorMe CEA v1.0.0
+================================================================================
