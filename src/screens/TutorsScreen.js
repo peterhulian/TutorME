@@ -53,9 +53,10 @@ const TutorsScreen = ({ route, navigation }) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('tutors')
-        .select('*')
-        .order('rating', { ascending: false });
+      .from('tutors')
+      .select('*')
+      .eq('is_active', true)
+      .order('rating', { ascending: false });
 
       if (error) throw error;
       setTutors(data || []);
